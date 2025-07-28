@@ -13,6 +13,8 @@ static func load_transition(scn: PackedScene) -> AnimationPlayer:
 			push_error("warp2d transition is not AnimationPlayer: {0}".format([scn]))
 	return trans
 
+static func _can_warp(warp: Warp2D, node: Node2D) -> bool:
+	return node.has_method(&"can_warp") && node.call(&"can_warp", warp)
 
 func _ready() -> void:
 	self.body_entered.connect(self._on_body_entered)
@@ -22,17 +24,17 @@ func _on_body_entered(body: Node2D) -> void:
 		push_error("warp2d " + self.name + " has no target")
 		return
 
-	if body is Avatar:
-		var node := self.get_node(self.target_node)
-		if node == null:
+	if _can_warp(self, body):
+		var trg := self.get_node(self.target_node)
+		if trg == null:
 			push_error("warp2d could not find target node at {0}".format([self.target_node]))
 			return
-		if node is not Node2D:
-			push_error("warp2d target node is not node2d ({0}, {1})".format([self.target_node, node]))
+		if trg is not Node2D:
+			push_error("warp2d target node is not node2d ({0}, {1})".format([self.target_node, trg]))
 			return
 
 		var trans := load_transition(self.transition)
 		# TODO :: play transition animation
 
-		body.global_position = (node as Node2D).global_position
+		body.global_position = (trg as Node2D).global_position
 
