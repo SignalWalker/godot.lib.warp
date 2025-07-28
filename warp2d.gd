@@ -15,14 +15,14 @@ static func load_transition(scn: PackedScene) -> AnimationPlayer:
 
 
 func _ready() -> void:
-	body_entered.connect(_on_body_entered)
+	self.body_entered.connect(self._on_body_entered)
 
 func _on_body_entered(body: Node2D) -> void:
-	if body is Avatar:
-		if self.target_node.is_empty():
-			push_error("warp2d " + self.name + " has no target")
-			return
+	if self.target_node.is_empty():
+		push_error("warp2d " + self.name + " has no target")
+		return
 
+	if body is Avatar:
 		var node := self.get_node(self.target_node)
 		if node == null:
 			push_error("warp2d could not find target node at {0}".format([self.target_node]))
@@ -34,5 +34,5 @@ func _on_body_entered(body: Node2D) -> void:
 		var trans := load_transition(self.transition)
 		# TODO :: play transition animation
 
-		self.global_position = (node as Node2D).global_position
+		body.global_position = (node as Node2D).global_position
 
