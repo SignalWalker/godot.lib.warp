@@ -1,17 +1,18 @@
 class_name Warp2D extends Area2D
 
 @export var target_node: NodePath = NodePath(&"")
-@export var transition: PackedScene = null
+@export_custom(PROPERTY_HINT_FILE, "*.tscn", PROPERTY_USAGE_DEFAULT) var transition: String = ""
 
-static func load_transition(scn: PackedScene) -> AnimationPlayer:
-	var trans: AnimationPlayer = null
-	if scn != null:
-		var inst := scn.instantiate()
-		if inst is AnimationPlayer:
-			trans = inst as AnimationPlayer
-		else:
-			push_error("warp2d transition is not AnimationPlayer: {0}".format([scn]))
-	return trans
+static func load_transition(scn_path: String) -> AnimationPlayer:
+	var scn := SceneManager.load_scene(scn_path, false, ResourceLoader.CacheMode.CACHE_MODE_REUSE)
+	if scn == null:
+		push_error("Warp2D could not load scene transition from path {0}".format([scn_path]))
+		return null
+	elif scn is AnimationPlayer:
+		return scn as AnimationPlayer
+	else:
+		push_error("Warp2D transition is not AnimationPlayer: {0} => {1}".format([scn_path, scn]))
+		return null
 
 static func _can_warp(warp: Warp2D, node: Node2D) -> bool:
 	return node.has_method(&"can_warp") && node.call(&"can_warp", warp)
@@ -33,8 +34,9 @@ func _on_body_entered(body: Node2D) -> void:
 			push_error("warp2d target node is not node2d ({0}, {1})".format([self.target_node, trg]))
 			return
 
-		var trans := load_transition(self.transition)
-		# TODO :: play transition animation
+		if !self.transition.is_empty():
+			var trans := load_transition(self.transition)
+			# TODO :: play transition animation
 
 		body.global_position = (trg as Node2D).global_position
 		if body.has_method("on_warped"):
