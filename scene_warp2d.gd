@@ -39,3 +39,6 @@ static func _transfer_callback(path: NodePath) -> Callable:
 			return
 
 		av.global_position = (trg as Node2D).global_position
+
+		if av.has_method("on_warped"):
+			av.call("on_warped", null, trg as Node2D)

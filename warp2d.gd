@@ -37,4 +37,6 @@ func _on_body_entered(body: Node2D) -> void:
 		# TODO :: play transition animation
 
 		body.global_position = (trg as Node2D).global_position
+		if body.has_method("on_warped"):
+			body.call("on_warped", self, trg as Node2D)
 
