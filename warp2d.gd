@@ -1,9 +1,18 @@
 class_name Warp2D extends Area2D
 
 @export var target_node: NodePath = NodePath(&"")
-@export_custom(PROPERTY_HINT_FILE, "*.tscn", PROPERTY_USAGE_DEFAULT) var transition: String = ""
+@export_custom(PROPERTY_HINT_FILE, "*.tscn", PROPERTY_USAGE_DEFAULT) var transition: String = "":
+	get:
+		return transition
+	set(value):
+		transition = value
+		self._transition_node = null
 
-static func load_transition(scn_path: String) -> AnimationPlayer:
+var _transition_node: AnimationPlayer = null
+
+signal warped(body: Node2D, trg: Node2D)
+
+static func _load_transition(scn_path: String) -> AnimationPlayer:
 	var scn := SceneManager.load_scene(scn_path, false, ResourceLoader.CacheMode.CACHE_MODE_REUSE)
 	if scn == null:
 		push_error("Warp2D could not load scene transition from path {0}".format([scn_path]))
@@ -20,7 +29,15 @@ static func _can_warp(warp: Warp2D, node: Node2D) -> bool:
 func _ready() -> void:
 	self.body_entered.connect(self._on_body_entered)
 
+func _transfer(body: Node2D, trg: Node2D) -> void:
+	print("\ttransferring {0} from {1} to {2}".format([body, self, trg]))
+	body.global_position = trg.global_position
+	if body.has_method("on_warped"):
+		body.call("on_warped", self, trg)
+	self.warped.emit(body, trg)
+
 func _on_body_entered(body: Node2D) -> void:
+	print("body {0} entered warp {1}".format([body.name, self.name]))
 	if self.target_node.is_empty():
 		push_error("warp2d " + self.name + " has no target")
 		return
@@ -34,11 +51,12 @@ func _on_body_entered(body: Node2D) -> void:
 			push_error("warp2d target node is not node2d ({0}, {1})".format([self.target_node, trg]))
 			return
 
-		if !self.transition.is_empty():
-			var trans := load_transition(self.transition)
-			# TODO :: play transition animation
+		print("\twarping {0} from {1} to {2}".format([body, self, trg]))
 
-		body.global_position = (trg as Node2D).global_position
-		if body.has_method("on_warped"):
-			body.call("on_warped", self, trg as Node2D)
+		if self._transition_node == null && !self.transition.is_empty():
+			self._transition_node = _load_transition(self.transition)
 
+		if self._transition_node != null:
+			SceneManager.play_transition.call_deferred(self._transition_node, true, func() -> void: self._transfer(body, trg))
+		else:
+			self._transfer(body, trg)

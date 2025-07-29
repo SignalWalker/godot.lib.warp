@@ -19,7 +19,7 @@ func _on_body_entered(body: Node2D) -> void:
 		# 	push_error("SceneWarp2D could not find SceneManager singleton")
 		# 	return
 
-		SceneManager.change_scene(self.target_scene, Warp2D.load_transition(self.transition), true, _transfer_callback(self.target_node))
+		SceneManager.change_scene(self.target_scene, Warp2D._load_transition(self.transition), true, _transfer_callback(self.target_node))
 
 static func _transfer_callback(path: NodePath) -> Callable:
 	return func(scn: Node) -> void:
