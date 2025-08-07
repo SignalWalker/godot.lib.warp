@@ -30,14 +30,12 @@ func _ready() -> void:
 	self.body_entered.connect(self._on_body_entered)
 
 func _transfer(body: Node2D, trg: Node2D) -> void:
-	print("\ttransferring {0} from {1} to {2}".format([body, self, trg]))
 	body.global_position = trg.global_position
 	if body.has_method("on_warped"):
 		body.call("on_warped", self, trg)
 	self.warped.emit(body, trg)
 
 func _on_body_entered(body: Node2D) -> void:
-	print("body {0} entered warp {1}".format([body.name, self.name]))
 	if self.target_node.is_empty():
 		push_error("warp2d " + self.name + " has no target")
 		return
@@ -50,8 +48,6 @@ func _on_body_entered(body: Node2D) -> void:
 		if trg is not Node2D:
 			push_error("warp2d target node is not node2d ({0}, {1})".format([self.target_node, trg]))
 			return
-
-		print("\twarping {0} from {1} to {2}".format([body, self, trg]))
 
 		if self._transition_node == null && !self.transition.is_empty():
 			self._transition_node = _load_transition(self.transition)
