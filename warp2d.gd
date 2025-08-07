@@ -13,7 +13,7 @@ var _transition_node: AnimationPlayer = null
 signal warped(body: Node2D, trg: Node2D)
 
 static func _load_transition(scn_path: String) -> AnimationPlayer:
-	var scn := SceneManager.load_scene(scn_path, false, ResourceLoader.CacheMode.CACHE_MODE_REUSE)
+	var scn := SceneManager.load_scene(scn_path, false, ResourceLoader.CacheMode.CACHE_MODE_REUSE) as Node
 	if scn == null:
 		push_error("Warp2D could not load scene transition from path {0}".format([scn_path]))
 		return null
@@ -53,6 +53,6 @@ func _on_body_entered(body: Node2D) -> void:
 			self._transition_node = _load_transition(self.transition)
 
 		if self._transition_node != null:
-			SceneManager.play_transition.call_deferred(self._transition_node, true, func() -> void: self._transfer(body, trg))
+			SceneManager.play_transition.call_deferred(self._transition_node, true, func() -> void: self._transfer(body, trg as Node2D))
 		else:
-			self._transfer(body, trg)
+			self._transfer(body, trg as Node2D)
